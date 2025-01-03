@@ -30,7 +30,6 @@ describe("UserAccount", () => {
     const user: User = { id: 1, name: "David" };
     render(<UserAccount user={user} />);
 
-    const button = screen.queryByRole("button");
-    expect(button).not.toBeInTheDocument;
+    expect(screen.queryByRole("button")).not.toBeInTheDocument;
   });
 });
