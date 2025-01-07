@@ -4,10 +4,11 @@ import {
   waitFor,
   waitForElementToBeRemoved,
 } from "@testing-library/react";
+import { delay, http, HttpResponse } from "msw";
 import ProductList from "../../src/components/ProductList";
-import { server } from "../mocks/server";
-import { http, HttpResponse, delay } from "msw";
+import AllProviders from "../AllProviders";
 import { db } from "../mocks/db";
+import { server } from "../mocks/server";
 
 describe("ProductList", () => {
   const productIds: number[] = [];
@@ -24,7 +25,7 @@ describe("ProductList", () => {
   });
 
   test("should render the list of products", async () => {
-    render(<ProductList />);
+    render(<ProductList />, { wrapper: AllProviders });
 
     await waitFor(() => {
       const items = screen.getAllByRole("listitem");
@@ -39,7 +40,7 @@ describe("ProductList", () => {
       })
     );
 
-    render(<ProductList />);
+    render(<ProductList />, { wrapper: AllProviders });
 
     const message = await screen.findByText(/no products/i);
     expect(message).toBeInTheDocument();
@@ -52,7 +53,7 @@ describe("ProductList", () => {
       })
     );
 
-    render(<ProductList />);
+    render(<ProductList />, { wrapper: AllProviders });
 
     const error = await screen.findByText(/error/i);
     expect(error).toBeInTheDocument();
@@ -66,13 +67,13 @@ describe("ProductList", () => {
       })
     );
 
-    render(<ProductList />);
+    render(<ProductList />, { wrapper: AllProviders });
 
     expect(await screen.findByText(/loading/i)).toBeInTheDocument();
   });
 
   test("should remove the loading indicator once is finish loading", async () => {
-    render(<ProductList />);
+    render(<ProductList />, { wrapper: AllProviders });
 
     await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
   });
@@ -83,7 +84,7 @@ describe("ProductList", () => {
         return HttpResponse.error();
       })
     );
-    render(<ProductList />);
+    render(<ProductList />, { wrapper: AllProviders });
 
     await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
   });
