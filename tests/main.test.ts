@@ -1,11 +1,11 @@
 import { test, expect, describe } from "vitest";
+import { faker } from "@faker-js/faker";
 
 describe("test suite", () => {
-  test("should", async () => {
-    const response = fetch("/categories");
-    const data = await (await response).json();
-    console.log(data);
-
-    expect(1).toBe(1);
+  test("should", () => {
+    console.log({
+      name: faker.commerce.productName(),
+      price: faker.commerce.price({ min: 1, max: 100 }),
+    });
   });
 });
