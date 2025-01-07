@@ -4,28 +4,30 @@ import { Theme } from "@radix-ui/themes";
 import userEvent from "@testing-library/user-event";
 
 describe("OrderStatusSelector", () => {
-  test("should render New as the default value", () => {
+  const renderOrderStatusSelector = () => {
     render(
       <Theme>
         <OrderStatusSelector onChange={vi.fn()} />
       </Theme>
     );
 
-    const button = screen.getByRole("combobox");
+    return {
+      button: screen.getByRole("combobox"),
+      user: userEvent.setup(),
+      getOptions: () => screen.findAllByRole("option"),
+    };
+  };
+  test("should render New as the default value", () => {
+    const { button } = renderOrderStatusSelector();
+
     expect(button).toHaveTextContent(/new/i);
   });
   test("should render correct statuses", async () => {
-    render(
-      <Theme>
-        <OrderStatusSelector onChange={vi.fn()} />
-      </Theme>
-    );
+    const { button, user, getOptions } = renderOrderStatusSelector();
 
-    const button = screen.getByRole("combobox");
-    const user = userEvent.setup();
     await user.click(button);
 
-    const options = await screen.findAllByRole("option");
+    const options = await getOptions();
     expect(options).toHaveLength(3);
     const labels = options.map((option) => option.textContent);
     expect(labels).toEqual(["New", "Processed", "Fulfilled"]);
