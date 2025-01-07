@@ -1,21 +1,34 @@
 import { render, screen } from "@testing-library/react";
 import ProductDetail from "../../src/components/ProductDetail";
-import { products } from "../mocks/data";
 import { server } from "../mocks/server";
 import { http, HttpResponse } from "msw";
+import { db } from "../mocks/db";
 
 describe("ProductDetail", () => {
-  const firstProduct = 0;
-  test("should render the list of products", async () => {
-    render(<ProductDetail productId={products[firstProduct].id} />);
+  let productId: number;
+
+  beforeAll(() => {
+    [1, 2, 3].forEach(() => {
+      const product = db.product.create();
+      productId = product.id;
+    });
+  });
+
+  afterAll(() => {
+    db.product.delete({ where: { id: { equals: productId } } });
+  });
+
+  test("should render the product details", async () => {
+    const product = db.product.findFirst({
+      where: { id: { equals: productId } },
+    });
+    render(<ProductDetail productId={productId} />);
 
     expect(
-      await screen.findByText(new RegExp(products[firstProduct].name))
+      await screen.findByText(new RegExp(product!.name))
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(
-        new RegExp(products[firstProduct].price.toString())
-      )
+      await screen.findByText(new RegExp(product!.price.toString()))
     ).toBeInTheDocument();
   });
 
@@ -25,7 +38,7 @@ describe("ProductDetail", () => {
         return HttpResponse.json(null);
       })
     );
-    render(<ProductDetail productId={products[firstProduct].id} />);
+    render(<ProductDetail productId={productId} />);
 
     const message = await screen.findByText(/not found/i);
     expect(message).toBeInTheDocument();
