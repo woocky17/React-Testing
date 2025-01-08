@@ -7,6 +7,7 @@ import ProductDetail from "../../src/components/ProductDetail";
 import { server } from "../mocks/server";
 import { delay, http, HttpResponse } from "msw";
 import { db } from "../mocks/db";
+import AllProviders from "../AllProviders";
 
 describe("ProductDetail", () => {
   let productId: number;
@@ -26,7 +27,7 @@ describe("ProductDetail", () => {
     const product = db.product.findFirst({
       where: { id: { equals: productId } },
     });
-    render(<ProductDetail productId={productId} />);
+    render(<ProductDetail productId={productId} />, { wrapper: AllProviders });
 
     expect(
       await screen.findByText(new RegExp(product!.name))
@@ -42,14 +43,14 @@ describe("ProductDetail", () => {
         return HttpResponse.json(null);
       })
     );
-    render(<ProductDetail productId={productId} />);
+    render(<ProductDetail productId={productId} />, { wrapper: AllProviders });
 
     const message = await screen.findByText(/not found/i);
     expect(message).toBeInTheDocument();
   });
 
   test("should render an error for invalid product id", async () => {
-    render(<ProductDetail productId={0} />);
+    render(<ProductDetail productId={0} />, { wrapper: AllProviders });
 
     const error = await screen.findByText(/invalid/i);
     expect(error).toBeInTheDocument();
@@ -62,7 +63,7 @@ describe("ProductDetail", () => {
       })
     );
 
-    render(<ProductDetail productId={0} />);
+    render(<ProductDetail productId={productId} />, { wrapper: AllProviders });
 
     const error = await screen.findByText(/error/i);
     expect(error).toBeInTheDocument();
@@ -76,13 +77,13 @@ describe("ProductDetail", () => {
       })
     );
 
-    render(<ProductDetail productId={productId} />);
+    render(<ProductDetail productId={productId} />, { wrapper: AllProviders });
 
     expect(await screen.findByText(/loading/i)).toBeInTheDocument();
   });
 
   test("should remove the loading indicator once is finish loading", async () => {
-    render(<ProductDetail productId={productId} />);
+    render(<ProductDetail productId={productId} />, { wrapper: AllProviders });
 
     await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
   });
@@ -93,7 +94,7 @@ describe("ProductDetail", () => {
         return HttpResponse.error();
       })
     );
-    render(<ProductDetail productId={productId} />);
+    render(<ProductDetail productId={productId} />, { wrapper: AllProviders });
 
     await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
   });
