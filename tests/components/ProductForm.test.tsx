@@ -19,28 +19,27 @@ describe("ProductForm", () => {
     db.category.deleteMany({ where: { id: { in: categoryIds } } });
   });
 
-  const renderProductForm = async (props = {}) => {
+  const renderProductForm = (props = {}) => {
     render(<ProductForm {...props} onSubmit={vi.fn()} />, {
       wrapper: AllProviders,
     });
 
-    await screen.findByRole("form");
-
-    const comboBox = screen.getByRole("combobox", { name: /category/i });
-    const name = screen.getByPlaceholderText(/name/i);
-    const price = screen.getByPlaceholderText(/price/i);
-
     return {
-      getInput: () => {
-        return { name, price, comboBox };
+      getInput: async () => {
+        await screen.findByRole("form");
+        return {
+          comboBox: screen.getByRole("combobox", { name: /category/i }),
+          name: screen.getByPlaceholderText(/name/i),
+          price: screen.getByPlaceholderText(/price/i),
+        };
       },
       user: userEvent.setup(),
     };
   };
   test("should render form fields", async () => {
-    const { getInput, user } = await renderProductForm();
+    const { getInput, user } = renderProductForm();
 
-    const { name, price, comboBox } = getInput();
+    const { name, price, comboBox } = await getInput();
 
     expect(name).toBeInTheDocument();
     expect(price).toBeInTheDocument();
@@ -63,12 +62,19 @@ describe("ProductForm", () => {
       categoryId: categories[0].id,
     };
 
-    const { getInput } = await renderProductForm({ product });
+    const { getInput } = renderProductForm({ product });
 
-    const { name, price, comboBox } = getInput();
+    const { name, price, comboBox } = await getInput();
 
     expect(name).toHaveValue(product.name);
     expect(price).toHaveValue(product.price.toString());
     expect(comboBox).toHaveTextContent(categories[0].name);
+  });
+
+  test("should focus on the name field", async () => {
+    const { getInput } = renderProductForm();
+
+    const { name } = await getInput();
+    expect(name).toHaveFocus();
   });
 });
