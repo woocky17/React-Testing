@@ -185,7 +185,7 @@ describe("ProductForm", () => {
     }
   );
 
-  test.only("should call onSubmit with the correct data", async () => {
+  test("should call onSubmit with the correct data", async () => {
     const { getInput, onSubmit } = renderProductForm();
 
     const form = await getInput();
@@ -205,5 +205,35 @@ describe("ProductForm", () => {
     const toast = await screen.findByRole("status");
     expect(toast).toBeInTheDocument();
     expect(toast).toHaveTextContent(/error/i);
+  });
+
+  test("should disable the submit button when is loading the submission", async () => {
+    const { getInput, onSubmit } = renderProductForm();
+    onSubmit.mockReturnValue(new Promise(() => {}));
+
+    const form = await getInput();
+    await form.fill({ ...form.validData });
+
+    expect(form.submitButton).toBeDisabled();
+  });
+
+  test("should re-enable the submit button after finishes loading the submission", async () => {
+    const { getInput, onSubmit } = renderProductForm();
+    onSubmit.mockResolvedValue({});
+
+    const form = await getInput();
+    await form.fill({ ...form.validData });
+
+    expect(form.submitButton).not.toBeDisabled();
+  });
+
+  test("should re-enable the submit button if submission fails", async () => {
+    const { getInput, onSubmit } = renderProductForm();
+    onSubmit.mockRejectedValue("error");
+
+    const form = await getInput();
+    await form.fill({ ...form.validData });
+
+    expect(form.submitButton).not.toBeDisabled();
   });
 });
