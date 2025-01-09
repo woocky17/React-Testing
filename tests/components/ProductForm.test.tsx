@@ -1,12 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import ProductForm from "../../src/components/ProductForm";
 import AllProviders from "../AllProviders";
-import { Category } from "../../src/entities";
+import { Category, Product } from "../../src/entities";
 import { db } from "../mocks/db";
 import userEvent from "@testing-library/user-event";
 
 describe("ProductForm", () => {
-  const categories: Category[] = [];
+  let categories: Category[] = [];
 
   beforeAll(() => {
     [1, 2, 3].forEach((item) => {
@@ -19,25 +19,31 @@ describe("ProductForm", () => {
     db.category.deleteMany({ where: { id: { in: categoryIds } } });
   });
 
-  const renderProductForm = async () => {
-    render(<ProductForm onSubmit={vi.fn()} />, { wrapper: AllProviders });
+  const renderProductForm = async (props = {}) => {
+    render(<ProductForm {...props} onSubmit={vi.fn()} />, {
+      wrapper: AllProviders,
+    });
 
     await screen.findByRole("form");
 
     const comboBox = screen.getByRole("combobox", { name: /category/i });
+    const name = screen.getByPlaceholderText(/name/i);
+    const price = screen.getByPlaceholderText(/price/i);
 
     return {
-      comboBox,
+      getInput: () => {
+        return { name, price, comboBox };
+      },
       user: userEvent.setup(),
     };
   };
   test("should render form fields", async () => {
-    const { comboBox, user } = await renderProductForm();
+    const { getInput, user } = await renderProductForm();
 
-    // await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
+    const { name, price, comboBox } = getInput();
 
-    expect(screen.getByPlaceholderText(/name/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/price/i)).toBeInTheDocument();
+    expect(name).toBeInTheDocument();
+    expect(price).toBeInTheDocument();
     expect(comboBox).toBeInTheDocument();
 
     await user.click(comboBox);
@@ -47,5 +53,22 @@ describe("ProductForm", () => {
         screen.getByRole("option", { name: category.name })
       ).toBeInTheDocument();
     });
+  });
+
+  test("should render the correct data", async () => {
+    const product: Product = {
+      id: 1,
+      name: "Bread",
+      price: 1,
+      categoryId: categories[0].id,
+    };
+
+    const { getInput } = await renderProductForm({ product });
+
+    const { name, price, comboBox } = getInput();
+
+    expect(name).toHaveValue(product.name);
+    expect(price).toHaveValue(product.price.toString());
+    expect(comboBox).toHaveTextContent(categories[0].name);
   });
 });
