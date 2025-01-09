@@ -4,6 +4,7 @@ import AllProviders from "../AllProviders";
 import { Category, Product } from "../../src/entities";
 import { db } from "../mocks/db";
 import userEvent from "@testing-library/user-event";
+import { Toaster } from "react-hot-toast";
 
 describe("ProductForm", () => {
   let categories: Category[] = [];
@@ -20,13 +21,21 @@ describe("ProductForm", () => {
   });
 
   const renderProductForm = (props = {}) => {
-    render(<ProductForm {...props} onSubmit={vi.fn()} />, {
-      wrapper: AllProviders,
-    });
+    const onSubmit = vi.fn();
+    render(
+      <>
+        <ProductForm {...props} onSubmit={onSubmit} /> <Toaster />
+      </>,
+      {
+        wrapper: AllProviders,
+      }
+    );
 
     const user = userEvent.setup();
 
     return {
+      onSubmit,
+
       expectErrorToBeInTheDocument: (errorMessage: RegExp) => {
         const error = screen.getByRole("alert");
         expect(error).toBeInTheDocument;
@@ -47,7 +56,7 @@ describe("ProductForm", () => {
           id: 1,
           name: "a",
           price: 1,
-          categoryId: 1,
+          categoryId: categories[0].id,
         };
 
         const fill = async (product: FormData) => {
@@ -175,4 +184,26 @@ describe("ProductForm", () => {
       expectErrorToBeInTheDocument(errorMessage);
     }
   );
+
+  test.only("should call onSubmit with the correct data", async () => {
+    const { getInput, onSubmit } = renderProductForm();
+
+    const form = await getInput();
+    await form.fill({ ...form.validData });
+
+    const { id, ...formData } = form.validData;
+    expect(onSubmit).toHaveBeenCalledWith(formData);
+  });
+
+  test("should display a toast if onSubmit fails", async () => {
+    const { getInput, onSubmit } = renderProductForm();
+    onSubmit.mockRejectedValue({});
+
+    const form = await getInput();
+    await form.fill({ ...form.validData });
+
+    const toast = await screen.findByRole("status");
+    expect(toast).toBeInTheDocument();
+    expect(toast).toHaveTextContent(/error/i);
+  });
 });
