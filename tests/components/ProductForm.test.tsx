@@ -55,6 +55,7 @@ describe("ProductForm", () => {
           if (product.price !== undefined)
             await user.type(price, product.price.toString());
 
+          await user.tab();
           await user.click(comboBox);
           const option = screen.getAllByRole("option");
           await user.click(option[0]);
