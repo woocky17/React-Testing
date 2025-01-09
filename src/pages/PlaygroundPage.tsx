@@ -1,7 +1,7 @@
-import BrowseProducts from "./BrowseProductsPage";
+import CategoryList from "../components/CategoryList";
 
 const PlaygroundPage = () => {
-  return <BrowseProducts />;
+  return <CategoryList />;
 };
 
 export default PlaygroundPage;
